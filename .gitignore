@@ -1,0 +1,24 @@
+# Dataset and generated training artifacts
+data/
+artifacts/
+best.pt
+*.pth
+*.ckpt
+
+# Notebook execution by-products
+.ipynb_checkpoints/
+*.executed.ipynb
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+# Secrets and local environments
+.env
+.env.*
+.kaggle/
+kaggle.json
+access_token
+.venv/
