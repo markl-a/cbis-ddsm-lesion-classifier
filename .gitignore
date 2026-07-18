@@ -1,8 +1,11 @@
-# Dataset and generated training artifacts
+# Dataset (huge; obtain from Kaggle — see README)
 data/
-artifacts/
-best.pt
-*.pth
+
+# NOTE: best.pt (the deliverable) and best_v1.pt (baseline, for the significance
+# script) ARE tracked. best_v2.pt is byte-identical to best.pt, so we don't ship it.
+best_v2.pt
+best_v3.pt
+_smoke*.pt
 *.ckpt
 
 # Notebook execution by-products

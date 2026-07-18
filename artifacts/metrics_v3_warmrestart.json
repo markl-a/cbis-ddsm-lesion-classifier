@@ -1,0 +1,81 @@
+{
+  "backbone": "efficientnet_v2_s",
+  "img_size": 288,
+  "tta": true,
+  "epochs": 24,
+  "sched": "warmrestart",
+  "seed": 42,
+  "val_case_auc": 0.838833746898263,
+  "best_epoch": 22,
+  "threshold": 0.4916423559188843,
+  "test": {
+    "image": {
+      "roc_auc": 0.7689540159826629,
+      "pr_auc": 0.7078399079738584,
+      "balanced_accuracy": 0.6863063795205201,
+      "f1": 0.6232394366197183,
+      "sensitivity": 0.6413043478260869,
+      "specificity": 0.7313084112149533,
+      "threshold": 0.4916423559188843,
+      "confusion": {
+        "tn": 313,
+        "fp": 115,
+        "fn": 99,
+        "tp": 177
+      },
+      "n": 704
+    },
+    "case": {
+      "roc_auc": 0.7763003232441963,
+      "pr_auc": 0.7306644425400957,
+      "balanced_accuracy": 0.7017215202272504,
+      "f1": 0.6426426426426426,
+      "sensitivity": 0.6524390243902439,
+      "specificity": 0.751004016064257,
+      "threshold": 0.4916423559188843,
+      "confusion": {
+        "tn": 187,
+        "fp": 62,
+        "fn": 57,
+        "tp": 107
+      },
+      "n": 413
+    },
+    "subgroups": {
+      "mass": {
+        "roc_auc": 0.8170987498951254,
+        "pr_auc": 0.7667216483100868,
+        "balanced_accuracy": 0.7233828341303801,
+        "f1": 0.6702127659574468,
+        "sensitivity": 0.7241379310344828,
+        "specificity": 0.7226277372262774,
+        "threshold": 0.4916423559188843,
+        "confusion": {
+          "tn": 99,
+          "fp": 38,
+          "fn": 24,
+          "tp": 63
+        },
+        "n": 224
+      },
+      "calc": {
+        "roc_auc": 0.7377087198515769,
+        "pr_auc": 0.6988176288286203,
+        "balanced_accuracy": 0.6785714285714286,
+        "f1": 0.6068965517241379,
+        "sensitivity": 0.5714285714285714,
+        "specificity": 0.7857142857142857,
+        "threshold": 0.4916423559188843,
+        "confusion": {
+          "tn": 88,
+          "fp": 24,
+          "fn": 33,
+          "tp": 44
+        },
+        "n": 189
+      }
+    }
+  },
+  "baseline_test_case_auc": 0.748,
+  "elapsed_min": 97.3
+}

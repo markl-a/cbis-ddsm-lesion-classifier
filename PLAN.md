@@ -6,8 +6,9 @@
   contains the metadata and the correct UID-based JPEG bridge.
 - Keep `cbis_ddsm_project/` untouched as an earlier draft; it is not a source of
   truth because its path resolver cannot map the Kaggle JPEG layout.
-- Keep tested logic in `src/`; make the notebook an end-to-end presentation and
-  execution surface with all configuration and outputs visible.
+- Keep tested logic in `src/` during development, then embed the reviewed
+  implementation into the final all-in-one notebook. The handoff notebook must
+  execute without `src/` beside it.
 - Risk first: validate UID coverage, patient overlap, and DirectML
   forward/backward before long training.
 
@@ -65,11 +66,13 @@
 
 ## Phase 3: notebook and real run
 
-- [ ] Task 7: Build the full Jupytext notebook
-  - Acceptance: notebook covers setup, audit, EDA, split proof, training,
-    plots, test evaluation, checkpoint loading, and inference.
-  - Verify: generated `.ipynb` parses and smoke-executes without cell error.
-  - Files: `CBIS_DDSM_Training.py`, `CBIS_DDSM_Training.ipynb`.
+- [ ] Task 7: Build the self-contained all-in-one notebook
+  - Acceptance: notebook embeds all pipeline definitions and covers setup,
+    audit, EDA, split proof, GPU training, plots, test evaluation, checkpoint
+    loading, and inference without importing local modules.
+  - Verify: copy only the notebook to a temporary directory, then parse and
+    smoke-execute it without cell error.
+  - Files: `CBIS_DDSM_All_In_One.py`, `CBIS_DDSM_All_In_One.ipynb`.
 
 - [ ] Task 8: Train the production checkpoint
   - Acceptance: non-smoke run completes, saves the best validation checkpoint,
@@ -93,4 +96,3 @@
 | 4 GiB reported graphics memory | OOM | EfficientNet-B0, 224 baseline, adaptive batch reduction |
 | JPEG conversion loses 16-bit intensity fidelity | Limits scientific claims | Document repack limitation; do not claim radiomics fidelity |
 | No normal cases | Misleading screening claim | Name and document task as known-lesion malignancy classification |
-

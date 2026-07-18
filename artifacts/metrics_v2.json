@@ -1,0 +1,78 @@
+{
+  "backbone": "efficientnet_v2_s",
+  "img_size": 288,
+  "tta": true,
+  "val_case_auc": 0.8287427626137304,
+  "best_epoch": 8,
+  "threshold": 0.4141003489494324,
+  "test": {
+    "image": {
+      "roc_auc": 0.7759718271705269,
+      "pr_auc": 0.6892776649453275,
+      "balanced_accuracy": 0.6982933766761479,
+      "f1": 0.6442953020134228,
+      "sensitivity": 0.6956521739130435,
+      "specificity": 0.7009345794392523,
+      "threshold": 0.4141003489494324,
+      "confusion": {
+        "tn": 300,
+        "fp": 128,
+        "fn": 84,
+        "tp": 192
+      },
+      "n": 704
+    },
+    "case": {
+      "roc_auc": 0.7937848956802821,
+      "pr_auc": 0.7194847743906122,
+      "balanced_accuracy": 0.7152512488980312,
+      "f1": 0.6685236768802229,
+      "sensitivity": 0.7317073170731707,
+      "specificity": 0.6987951807228916,
+      "threshold": 0.4141003489494324,
+      "confusion": {
+        "tn": 174,
+        "fp": 75,
+        "fn": 44,
+        "tp": 120
+      },
+      "n": 413
+    },
+    "subgroups": {
+      "mass": {
+        "roc_auc": 0.8108062756942697,
+        "pr_auc": 0.7183190666265651,
+        "balanced_accuracy": 0.7296753083312358,
+        "f1": 0.6804123711340206,
+        "sensitivity": 0.7586206896551724,
+        "specificity": 0.7007299270072993,
+        "threshold": 0.4141003489494324,
+        "confusion": {
+          "tn": 96,
+          "fp": 41,
+          "fn": 21,
+          "tp": 66
+        },
+        "n": 224
+      },
+      "calc": {
+        "roc_auc": 0.7802643784786641,
+        "pr_auc": 0.7494118643411165,
+        "balanced_accuracy": 0.6988636363636364,
+        "f1": 0.6545454545454545,
+        "sensitivity": 0.7012987012987013,
+        "specificity": 0.6964285714285714,
+        "threshold": 0.4141003489494324,
+        "confusion": {
+          "tn": 78,
+          "fp": 34,
+          "fn": 23,
+          "tp": 54
+        },
+        "n": 189
+      }
+    }
+  },
+  "baseline_test_case_auc": 0.748,
+  "elapsed_min": 45.7
+}

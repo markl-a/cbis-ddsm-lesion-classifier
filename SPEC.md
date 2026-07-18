@@ -6,8 +6,9 @@ Build a reproducible PyTorch notebook that classifies a **known lesion crop** as
 malignant (`1`) or benign-like (`0`) from the awsaf49 JPEG repack of CBIS-DDSM.
 The final deliverables are:
 
-- `CBIS_DDSM_Training.ipynb`: data validation, leakage-safe splitting, EDA,
-  training, evaluation, checkpoint loading, and single-image inference.
+- `CBIS_DDSM_All_In_One.ipynb`: a self-contained notebook with data validation,
+  leakage-safe splitting, EDA, training, evaluation, checkpoint loading, and
+  single-image inference. It must not import local project modules.
 - `best.pt`: the checkpoint from the epoch with the highest validation
   case-level ROC-AUC.
 - Tests and documentation needed to reproduce and audit both artifacts.
@@ -61,8 +62,9 @@ before case-level metrics are computed.
   only**.
 - Optimizer/schedule: AdamW with cosine decay; early stopping on validation
   case-level ROC-AUC.
-- Device order: DirectML probe -> DirectML when the probe passes -> CPU
-  fallback. CUDA is supported if the notebook is moved to a CUDA machine.
+- Device order: DirectML probe -> CUDA probe. The delivered full run sets
+  `REQUIRE_GPU=True` and stops if neither probe passes; CPU remains available
+  only for unit tests and portable checkpoint inference.
 - Reproducibility: seed Python, NumPy, PyTorch, DataLoader generators and record
   dependency/device versions. Exact bitwise equality across devices is not
   promised.
@@ -88,12 +90,12 @@ Run from `C:\Users\m4932\Desktop\test0718`:
 .\.venv\Scripts\python.exe -m unittest discover -s breast_cancer\tests -v
 
 # Generate the notebook from its Jupytext source
-.\.venv\Scripts\jupytext.exe --to ipynb breast_cancer\CBIS_DDSM_Training.py
+.\.venv\Scripts\jupytext.exe --to ipynb breast_cancer\CBIS_DDSM_All_In_One.py
 
 # Execute a smoke configuration after data is present
 .\.venv\Scripts\jupyter-nbconvert.exe --to notebook --execute `
-  breast_cancer\CBIS_DDSM_Training.ipynb `
-  --output CBIS_DDSM_Training.executed.ipynb `
+  breast_cancer\CBIS_DDSM_All_In_One.ipynb `
+  --output CBIS_DDSM_All_In_One.executed.ipynb `
   --ExecutePreprocessor.timeout=1800
 ```
 
@@ -104,8 +106,8 @@ breast_cancer/
   data/                         local dataset; ignored by Git
   tests/                        fast unit and integration tests
   src/                          importable pipeline code
-  CBIS_DDSM_Training.py         Jupytext source of the full notebook
-  CBIS_DDSM_Training.ipynb      final notebook deliverable
+  CBIS_DDSM_All_In_One.py       generation source; not required at handoff
+  CBIS_DDSM_All_In_One.ipynb    self-contained final notebook deliverable
   best.pt                       final trained checkpoint
   README.md                     usage and results
   SPEC.md                       this contract
@@ -120,6 +122,8 @@ breast_cancer/
   checkpoint round-trip.
 - A DirectML probe performs one EfficientNet forward/backward pass; lack of
   DirectML skips the accelerator path rather than failing CPU use.
+- The generated notebook is tested from a location where `src/` is unavailable,
+  proving that it does not depend on local Python modules.
 - Notebook smoke execution uses a very small subset and one short epoch. The
   delivered `best.pt` must come from the full configured run, never smoke mode.
 - Final verification loads `best.pt` on CPU, validates metadata and finite
@@ -141,7 +145,8 @@ breast_cancer/
 - At least 99.5% of description rows map to the intended crop metadata, and all
   retained image files exist.
 - No patient appears in more than one of train/validation/test.
-- The notebook executes end-to-end in smoke mode with no cell error.
+- The all-in-one notebook executes end-to-end in smoke mode with no cell error
+  and no import from `src/`.
 - `best.pt` is produced by a non-smoke training run and passes CPU checkpoint
   round-trip/inference validation.
 - Final metrics and limitations are recorded in the notebook and README.
@@ -158,4 +163,3 @@ breast_cancer/
   https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedGroupKFold.html
 - Microsoft PyTorch with DirectML:
   https://learn.microsoft.com/en-us/windows/ai/directml/pytorch-windows
-
