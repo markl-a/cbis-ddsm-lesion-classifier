@@ -90,12 +90,14 @@ def _local_jpeg_path(image_path: str, jpeg_dir: Path) -> Path:
 
 
 def _case_id(abnormality: str, row: pd.Series) -> str:
+    pathology = str(row.get("pathology", "unknown")).strip().upper()
     return "|".join(
         [
             abnormality,
             str(row.get("patient_id", "unknown")).strip(),
             str(row.get("left or right breast", "unknown")).strip().upper(),
             _canonical_id(row.get("abnormality id")),
+            pathology,
         ]
     )
 

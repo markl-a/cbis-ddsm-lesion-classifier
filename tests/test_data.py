@@ -75,7 +75,11 @@ class ManifestTests(unittest.TestCase):
             self.assertEqual(row.official_split, "train")
             self.assertEqual(row.abnormality, "mass")
             self.assertEqual(row.image_view, "CC")
-            self.assertEqual(row.case_id, "mass|P_00001|LEFT|1")
+            # A few real CBIS-DDSM abnormality ids are swapped between CC/MLO
+            # and carry contradictory pathologies.  Qualifying the evaluation
+            # key by pathology prevents a benign and malignant image from being
+            # averaged into one case; pathology is never a model input.
+            self.assertEqual(row.case_id, "mass|P_00001|LEFT|1|MALIGNANT")
             self.assertGreaterEqual(manifest.attrs["mapping_coverage"], 0.995)
 
 
