@@ -24,6 +24,8 @@
 # | subgroup mass / calc | 0.778 / 0.729 | 0.811 / 0.780 |
 #
 # 提升 **+0.046 AUC 經統計檢定確認顯著**（DeLong 配對 p≈0.035、bootstrap ΔAUC 95% CI 不含 0）。
+# **5-fold 交叉驗證**：mean **0.767 ± 0.011**、5-model 集成 **0.791**，5 個 fold 全數贏過 baseline
+# （交付的單一 fold 0.794 落在分布高端；詳見第 12 節）。
 #
 # ## 這份作業最關鍵的一步：防資料洩漏
 # CBIS-DDSM 的 mass / calc 切分是**獨立**建立的，合併後有 **31 位病人橫跨官方 train/test**。
@@ -709,6 +711,16 @@ plt.axis("off"); plt.show()
 # - JPEG repack 失去原始 16-bit 灰階資訊，不宜宣稱 radiomics 級別保真度。
 # - 4 GiB 顯存 + torch-directml（AMD）下用 EfficientNetV2-S@288；更高解析度需調 batch。
 #
-# ### 可強化
-# 5-fold 集成（給 mean±std 更可辯護的數字）、logit-mean 雙視角融合（實測 +0.003）、
-# 依臨床偏好調整閾值（犧牲特異度換更高敏感度以降低漏診）。
+# ### 5-fold 交叉驗證（穩健性驗證，已完成）
+# 為避免「只報最好的 fold」，我跑完全部 5 個 patient-disjoint fold：
+#
+# | fold | 0 | 1 | 2 | 3 | 4 | **mean ± std** | **5-model 集成** |
+# |---|---|---|---|---|---|---|---|
+# | test case-AUC | 0.780 | 0.776 | 0.768 | 0.755 | 0.756 | **0.767 ± 0.011** | **0.791** |
+#
+# **5 個 fold 全部贏過 baseline 0.748**；穩健中心估計 0.767±0.011，集成回到 0.791。
+# 本 notebook 訓練的是單一 fold（作為代表性模型與交付 `best.pt`）；上表的 mean±std 才是最
+# 可辯護的數字。（重跑：`python train_v2.py --backbone efficientnet_v2_s --img-size 288 --tta --folds 0 1 2 3 4`）
+#
+# ### 其他可強化
+# logit-mean 雙視角融合（實測 +0.003，在雜訊內）、依臨床偏好調整閾值（犧牲特異度換更高敏感度以降低漏診）。

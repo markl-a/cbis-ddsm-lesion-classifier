@@ -1,0 +1,71 @@
+{
+  "config": {
+    "backbone": "efficientnet_v2_s",
+    "img_size": 288,
+    "epochs": 16,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "weight_decay": 0.0001,
+    "loss": "bce",
+    "focal_gamma": 1.5,
+    "patience": 4,
+    "tta": true,
+    "folds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "tag": "effv2s288_5fold"
+  },
+  "ensemble_test": {
+    "roc_auc": 0.7913360760113626,
+    "pr_auc": 0.7423152299278669,
+    "balanced_accuracy": 0.7039499461259673,
+    "f1": 0.6512968299711815,
+    "sensitivity": 0.6890243902439024,
+    "specificity": 0.7188755020080321,
+    "threshold": 0.4745548367500305,
+    "confusion": {
+      "tn": 179,
+      "fp": 70,
+      "fn": 51,
+      "tp": 113
+    },
+    "n": 413
+  },
+  "subgroups": {
+    "mass": 0.8309421931370081,
+    "calc": 0.7634508348794062
+  },
+  "per_fold": [
+    {
+      "fold": 0,
+      "val_best_case_auc": 0.8370967741935483,
+      "test_case_auc": 0.7800715055343324
+    },
+    {
+      "fold": 1,
+      "val_best_case_auc": 0.8825169255276782,
+      "test_case_auc": 0.7760554412773043
+    },
+    {
+      "fold": 2,
+      "val_best_case_auc": 0.8618849788204627,
+      "test_case_auc": 0.7678274071897345
+    },
+    {
+      "fold": 3,
+      "val_best_case_auc": 0.8107610474631752,
+      "test_case_auc": 0.7552404740914879
+    },
+    {
+      "fold": 4,
+      "val_best_case_auc": 0.8396890343698854,
+      "test_case_auc": 0.7554853560583799
+    }
+  ],
+  "threshold": 0.4745548367500305,
+  "elapsed_min": 123.7
+}
