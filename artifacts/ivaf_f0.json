@@ -1,0 +1,30 @@
+{
+  "model": "resnet50_ivaf",
+  "fold": 0,
+  "img": 288,
+  "tta": true,
+  "val_auc": 0.7705541770057899,
+  "best_epoch": 2,
+  "test": {
+    "roc_auc": 0.6964198256440395,
+    "pr_auc": 0.6256230368863364,
+    "balanced_accuracy": 0.6104540111666177,
+    "f1": 0.6035242290748899,
+    "sensitivity": 0.8353658536585366,
+    "specificity": 0.3855421686746988,
+    "threshold": 0.39545542001724243,
+    "confusion": {
+      "tn": 96,
+      "fp": 153,
+      "fn": 27,
+      "tp": 137
+    },
+    "n": 413
+  },
+  "vs_v2s": {
+    "mean5": 0.767,
+    "single": 0.794,
+    "ensemble": 0.791
+  },
+  "elapsed_min": 16.5
+}

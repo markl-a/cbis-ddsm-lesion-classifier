@@ -31,6 +31,7 @@ from data import (build_manifest, make_patient_splits, CBISDataset,
 from metrics import aggregate_by_case, classification_metrics, evaluate_predictions, select_threshold
 from model import get_device
 from backbones import build_backbone, count_params
+from losses import dml_bce_with_logits
 
 HERE = Path(__file__).parent
 DATA = HERE / "data"
@@ -96,21 +97,21 @@ def train_one_fold(train_df, val_df, cfg, device, log=print):
     pos_weight = torch.tensor([n_neg / max(n_pos, 1)], device=device)
     if cfg["loss"] == "focal":
         criterion = BCEFocalLoss(gamma=cfg["focal_gamma"], pos_weight=pos_weight)
-    else:
-        criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    else:   # DML 友善 BCE（見 src/losses.py）,數值等價 BCEWithLogitsLoss、避開 CPU fallback
+        criterion = lambda logits, targets: dml_bce_with_logits(logits, targets, pos_weight)
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg["lr"], weight_decay=cfg["weight_decay"])
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(cfg["epochs"], 1))
 
     best_auc, best_state, best = -1.0, copy.deepcopy(model.state_dict()), None
     no_improve = 0
     for epoch in range(1, cfg["epochs"] + 1):
-        model.train(); t0 = time.time(); running = 0.0
+        model.train(); t0 = time.time(); running = torch.zeros((), device=device)
         for x, y, _ in train_loader:
             x = x.to(device); y = y.float().unsqueeze(1).to(device)
             optimizer.zero_grad(); loss = criterion(model(x), y)
-            loss.backward(); optimizer.step(); running += loss.item() * x.size(0)
+            loss.backward(); optimizer.step(); running += loss.detach() * x.size(0)
         scheduler.step()
-        tr_loss = running / len(train_loader.dataset)
+        tr_loss = (running / len(train_loader.dataset)).item()
         yt, yp, cids, _ = infer(model, val_loader, val_df, device, tta=cfg["tta"])
         ct, cp = aggregate_by_case(cids, yt, yp)
         thr = select_threshold(ct, cp)

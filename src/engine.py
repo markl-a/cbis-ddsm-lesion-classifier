@@ -18,6 +18,7 @@ from torch.utils.data import DataLoader
 from data import CBISDataset, get_transforms
 from metrics import aggregate_by_case, evaluate_predictions, select_threshold
 from model import build_model
+from losses import dml_bce_with_logits
 
 
 @dataclass
@@ -82,8 +83,7 @@ def train(train_df, val_df, cfg: TrainConfig, device, log=print):
     val_loader = _make_loader(val_df, cfg, train=False)
 
     model = build_model(pretrained=True).to(device)
-    pos_weight = torch.tensor([compute_pos_weight(train_df)], device=device)
-    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    pos_weight = torch.tensor([compute_pos_weight(train_df)], device=device)  # DML 友善 BCE（見 losses.py）
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
     epochs = 1 if cfg.smoke else cfg.epochs
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(epochs, 1))
@@ -93,15 +93,15 @@ def train(train_df, val_df, cfg: TrainConfig, device, log=print):
     no_improve = 0
 
     for epoch in range(1, epochs + 1):
-        model.train(); t0 = time.time(); running = 0.0
+        model.train(); t0 = time.time(); running = torch.zeros((), device=device)
         for x, y, _ in train_loader:
             x = x.to(device); y = y.float().unsqueeze(1).to(device)
             optimizer.zero_grad()
-            loss = criterion(model(x), y)
+            loss = dml_bce_with_logits(model(x), y, pos_weight)
             loss.backward(); optimizer.step()
-            running += loss.item() * x.size(0)
+            running += loss.detach() * x.size(0)
         scheduler.step()
-        train_loss = running / len(train_loader.dataset)
+        train_loss = (running / len(train_loader.dataset)).item()
 
         yt, yp, cids, abn = infer(model, val_loader, val_df, device)
         ct, cp = aggregate_by_case(cids, yt, yp)

@@ -25,6 +25,7 @@ from metrics import aggregate_by_case, classification_metrics, evaluate_predicti
 from model import get_device
 from backbones import build_backbone, count_params
 from checkpoint import save_checkpoint, load_for_inference, predict_image
+from losses import dml_bce_with_logits
 
 DATA = HERE / "data"
 OUT = Path(os.environ.get("OUT_PATH", HERE / "best_v2.pt"))
@@ -91,7 +92,7 @@ def main():
     model = build_backbone(BACKBONE, pretrained=True).to(device)
     print("可訓練參數:", f"{count_params(model)/1e6:.1f}M")
     n_pos = int((train_df["label"] == 1).sum()); n_neg = int((train_df["label"] == 0).sum())
-    criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([n_neg / max(n_pos, 1)], device=device))
+    pos_weight = torch.tensor([n_neg / max(n_pos, 1)], device=device)   # DML 友善 BCE（見 src/losses.py）
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD)
     if SCHED == "warmrestart":
         # SGDR：每 RESTART_T0 回合把學習率重新拉高再退火，給機會跳出平原
@@ -106,13 +107,14 @@ def main():
     best_auc, best_state, best = -1.0, copy.deepcopy(model.state_dict()), None
     no_improve = 0
     for epoch in range(1, EPOCHS + 1):
-        model.train(); te = time.time(); running = 0.0
+        model.train(); te = time.time(); running = torch.zeros((), device=device)
         for x, y, _ in train_loader:
             x = x.to(device); y = y.float().unsqueeze(1).to(device)
-            optimizer.zero_grad(); loss = criterion(model(x), y); loss.backward(); optimizer.step()
-            running += loss.item() * x.size(0)
+            optimizer.zero_grad(); loss = dml_bce_with_logits(model(x), y, pos_weight)
+            loss.backward(); optimizer.step()
+            running += loss.detach() * x.size(0)          # 累加在 GPU,避免每步 .item() 同步
         scheduler.step()
-        tr_loss = running / len(train_loader.dataset)
+        tr_loss = (running / len(train_loader.dataset)).item()
         yt, yp, cids, abn = infer(model, val_loader, val_df, device, tta=TTA)
         ct, cp = aggregate_by_case(cids, yt, yp)
         thr = select_threshold(ct, cp)

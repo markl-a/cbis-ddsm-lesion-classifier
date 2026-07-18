@@ -12,10 +12,13 @@
 - **`best.pt`** — 交付模型（EfficientNetV2-S @288 + TTA，81 MB，CPU 張量，完整 metadata）。
   另外保留 `best_v1.pt`（baseline），供 `evaluate_significance.py` 跑配對顯著性檢定
   （`best.pt` vs `best_v1.pt`）。
-- **`src/` + `tests/`** — 同一套 pipeline 的可重用模組，附單元測試
+- **`src/` + `tests/`** — 同一套 pipeline 的可重用模組（`data` / `model` / `backbones` /
+  `metrics` / `engine` / `checkpoint` / `losses`），附單元測試
   （`python -m unittest discover -s tests`）。
 - **`evaluate_significance.py`** — v2 相對 baseline 的 DeLong + bootstrap 顯著性檢定。
-- **`artifacts/`** — 指標、切分稽核、顯著性檢定的 JSON。
+- **`src/ivaf.py` + `explore_ivaf.py`** — 雙視角 IVAF 模型探索(誠實的負面消融,見下方「探索與消融」)。
+- **`run_training_v2.py` / `train_v2.py` / `run_training.py`** — v2 訓練 / 掃描+5-fold / v1 baseline。
+- **`artifacts/`** — 指標、切分稽核、顯著性、5-fold、IVAF 的 JSON。
 
 notebook 以**未執行**狀態繳交（已清除輸出）。要從頭重現需先取得資料集（見下），並跑一次
 訓練（AMD iGPU 上約 30–45 分鐘）。
@@ -105,6 +108,26 @@ $env:SMOKE=1; $env:CBIS_FORCE_CPU=1; $env:OUT_PATH="_smoke_best.pt"
 
 驗收合約見 [SPEC.md](SPEC.md)，工作分解見 [PLAN.md](PLAN.md)。單元測試：
 `.\.venv\Scripts\python.exe -m unittest discover -s breast_cancer\tests`。
+
+## 探索與消融（誠實的負面結果）
+
+除了交付的 V2-S,我也在**同一防洩漏 split** 上實作並比較了文獻上的雙視角方法,結果都**沒贏過**
+單視角 V2-S —— 這本身是有價值的誠實發現(reproduce,不是 cite):
+
+| 實驗 | test case-AUC | 對照 V2-S (0.767 mean) |
+|---|---|---|
+| **ResNet50 + IVAF**(inter-view attention 融合 CC/MLO) | 0.696 | 未勝出 |
+| EfficientNetV2-S + IVAF | 驗證僅 0.75（單視角 0.83）| 未勝出 |
+| learned CC/MLO fusion head | OOF 0.8126（< logit-mean 0.8146）| 未勝出 |
+
+原因:訓練資料僅 ~1,275 對、CC/MLO 配對僅 73%、雙編碼器+注意力在小資料上過擬合。程式在
+`src/ivaf.py` + `explore_ivaf.py`(`python explore_ivaf.py`);結果在 `artifacts/ivaf_f0.json`。
+**結論:此資料規模下,調過的單視角 EfficientNetV2-S + TTA 才是最優。**
+
+> **DirectML 效能備註**:`BCEWithLogitsLoss` 內部的 `log_sigmoid` 在 DirectML 會退回 CPU、每步
+> 造成 GPU↔CPU 同步(實測 GPU 使用率僅 ~48%)。訓練腳本改用 `src/losses.py` 的
+> `dml_bce_with_logits`(softplus 展開、數值等價、全程留 GPU),每 epoch 約快 5%;搭配 batch 32
+> 是這顆 iGPU 上的實務最佳(~50–60% 已接近 DirectML 天花板,再上去需 ROCm + fp16)。
 
 ## 重要限制
 
